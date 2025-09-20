@@ -1,0 +1,22 @@
+{
+  "title": "Dateimanager",
+  "choose_file": "Datei auswählen",
+  "upload": "Hochladen",
+  "upload_success": "Upload erfolgreich!",
+  "upload_fail": "Upload fehlgeschlagen!",
+  "search": "Suche...",
+  "all_categories": "Alle Kategorien",
+  "archives": "Archive",
+  "images": "Bilder",
+  "documents": "Dokumente",
+  "others": "Sonstiges",
+  "download": "Herunterladen",
+  "delete": "Löschen",
+  "confirm_delete": "Willst du diese Datei wirklich löschen?",
+  "login": "Einloggen",
+  "register": "Registrieren",
+  "username": "Benutzername",
+  "password": "Passwort",
+  "no_account": "Noch kein Konto? Registrieren",
+  "have_account": "Schon ein Konto? Einloggen"
+}

@@ -1,0 +1,22 @@
+{
+  "title": "File Manager",
+  "choose_file": "Choose File",
+  "upload": "Upload",
+  "upload_success": "Upload successful!",
+  "upload_fail": "Upload failed!",
+  "search": "Search...",
+  "all_categories": "All Categories",
+  "archives": "Archives",
+  "images": "Images",
+  "documents": "Documents",
+  "others": "Others",
+  "download": "Download",
+  "delete": "Delete",
+  "confirm_delete": "Do you really want to delete this file?",
+  "login": "Login",
+  "register": "Register",
+  "username": "Username",
+  "password": "Password",
+  "no_account": "No account? Register",
+  "have_account": "Already have an account? Login"
+}

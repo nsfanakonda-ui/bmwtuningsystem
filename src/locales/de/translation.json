@@ -1,0 +1,27 @@
+{
+  "title": "BMW Dateisystem",
+  "choose_file": "Datei auswählen",
+  "upload": "Hochladen",
+  "upload_success": "Upload erfolgreich",
+  "upload_fail": "Upload fehlgeschlagen",
+  "search": "Suche...",
+  "all_categories": "Alle Kategorien",
+  "download": "Herunterladen",
+  "logout": "Abmelden",
+  "logged_in_as": "Eingeloggt als: {{user}} ({{role}})",
+  "categories": {
+    "xdf": "XDF",
+    "bin": "BIN",
+    "archive": "Archive",
+    "images": "Bilder",
+    "documents": "Dokumente",
+    "others": "Sonstiges",
+	"delete": "Löschen"
+  },
+  "login": "Einloggen",
+  "register": "Registrieren",
+  "username": "Benutzername",
+  "password": "Passwort",
+  "have_account": "Schon ein Konto? Hier einloggen",
+  "no_account": "Noch kein Konto? Registrieren"
+}

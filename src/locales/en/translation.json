@@ -1,0 +1,27 @@
+{
+  "title": "BMW File System",
+  "choose_file": "Choose File",
+  "upload": "Upload",
+  "upload_success": "Upload successful",
+  "upload_fail": "Upload failed",
+  "search": "Search...",
+  "all_categories": "All categories",
+  "download": "Download",
+  "logout": "Logout",
+  "logged_in_as": "Logged in as: {{user}} ({{role}})",
+  "categories": {
+    "xdf": "XDF",
+    "bin": "BIN",
+    "archive": "Archives",
+    "images": "Images",
+    "documents": "Documents",
+    "others": "Others",
+	"delete": "Delete"
+  },
+  "login": "Login",
+  "register": "Register",
+  "username": "Username",
+  "password": "Password",
+  "have_account": "Already have an account? Login here",
+  "no_account": "No account yet? Register"
+}
