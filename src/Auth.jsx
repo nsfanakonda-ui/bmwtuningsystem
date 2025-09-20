@@ -1,3 +1,5 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import deFlag from "./assets/flags/de.png";
@@ -19,8 +21,8 @@ function Auth({ onLogin }) {
     e.preventDefault();
 
     const url = isRegister
-      ? "http://localhost:5000/api/auth/register"
-      : "http://localhost:5000/api/auth/login";
+      ? `${API_URL}/auth/register`
+      : `${API_URL}/auth/login`;
 
     try {
       const res = await fetch(url, {
@@ -36,69 +38,49 @@ function Auth({ onLogin }) {
         return;
       }
 
-      if (isRegister) {
-        setMessage("✅ Registrierung erfolgreich, bitte einloggen.");
-        setIsRegister(false);
-      } else {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);
-        onLogin();
-      }
+      localStorage.setItem("username", data.username);
+      localStorage.setItem("role", data.role);
+      setMessage("✅ Login erfolgreich");
+      onLogin();
     } catch (err) {
-      console.error("❌ Auth Error:", err);
-      setMessage("❌ Serverfehler");
+      setMessage("❌ Netzwerkfehler");
+      console.error("Auth Error:", err);
     }
   };
 
   return (
     <div className="auth-container">
-      <div className="auth-box">
-        {/* Sprachumschaltung */}
-        <div className="lang-switch">
-          <img
-            src={deFlag}
-            alt="Deutsch"
-            onClick={() => handleLanguageChange("de")}
-          />
-          <img
-            src={enFlag}
-            alt="English"
-            onClick={() => handleLanguageChange("en")}
-          />
-        </div>
-
-        <h2>{isRegister ? t("register") : t("login")}</h2>
-
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder={t("username")}
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder={t("password")}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button type="submit">
-            {isRegister ? t("register") : t("login")}
-          </button>
-        </form>
-
-        {message && <p className="auth-message">{message}</p>}
-
-        {/* Umschalt-Button */}
-        <p
-          className="toggle-btn"
-          onClick={() => setIsRegister(!isRegister)}
-        >
-          {isRegister ? t("have_account") : t("no_account")}
-        </p>
+      <div className="language-switch">
+        <img src={deFlag} alt="Deutsch" onClick={() => handleLanguageChange("de")} />
+        <img src={enFlag} alt="English" onClick={() => handleLanguageChange("en")} />
       </div>
+
+      <h2>{isRegister ? t("register") : t("login")}</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder={t("username")}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder={t("password")}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">
+          {isRegister ? t("register") : t("login")}
+        </button>
+      </form>
+
+      <p onClick={() => setIsRegister(!isRegister)} className="toggle">
+        {isRegister ? t("haveAccount") : t("noAccount")}
+      </p>
+
+      {message && <p>{message}</p>}
     </div>
   );
 }
