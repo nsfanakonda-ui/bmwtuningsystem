@@ -1,3 +1,5 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import deFlag from "./assets/flags/de.png";
@@ -30,13 +32,12 @@ function App() {
 
   const fetchFiles = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/upload");
+      const res = await fetch(`${API_URL}/upload`);
       if (!res.ok) throw new Error("Fehler beim Laden");
       const data = await res.json();
       setFiles(data);
     } catch (err) {
       console.error("❌ Fetch Error:", err);
-      setFiles([]);
     }
   };
 
@@ -44,304 +45,106 @@ function App() {
     fetchFiles();
   }, []);
 
-  const handleUpload = (e) => {
-    e.preventDefault();
-    if (!file) {
-      setStatus("error");
-      return;
-    }
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+    setFileName(e.target.files[0]?.name || "");
+  };
 
+  const handleUpload = () => {
+    if (!file) return;
+    const xhr = new XMLHttpRequest();
     const formData = new FormData();
     formData.append("file", file);
 
-    const xhr = new XMLHttpRequest();
-
-    xhr.upload.addEventListener("progress", (event) => {
-      if (event.lengthComputable) {
-        const percent = Math.round((event.loaded / event.total) * 100);
-        setProgress(percent);
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable) {
+        setProgress(Math.round((e.loaded / e.total) * 100));
       }
     });
 
-    xhr.addEventListener("load", () => {
-      if (xhr.status === 200) {
-        setProgress(100);
-        setStatus("success");
-        setTimeout(() => {
-          setProgress(0);
-          setStatus(null);
-        }, 3000);
-        setFile(null);
-        setFileName("");
-        fetchFiles();
-      } else {
-        setStatus("error");
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        if (xhr.status === 200) {
+          setStatus("✅ Upload erfolgreich");
+          fetchFiles();
+        } else {
+          setStatus("❌ Fehler beim Upload");
+        }
       }
-    });
+    };
 
-    xhr.addEventListener("error", () => {
-      setStatus("error");
-    });
-
-    xhr.open("POST", "http://localhost:5000/api/upload");
+    xhr.open("POST", `${API_URL}/upload`);
     xhr.send(formData);
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/upload/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Fehler beim Löschen");
+      fetchFiles();
+    } catch (err) {
+      console.error("❌ Delete Error:", err);
+    }
+  };
+
   const filteredFiles = files.filter((f) => {
-    const matchesSearch = f.originalname
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const fileKey = getCategoryKey(f.originalname);
-    const matchesCategory = categoryFilter === "all" || fileKey === categoryFilter;
+    const matchesSearch = f.filename.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory =
+      categoryFilter === "all" || getCategoryKey(f.filename) === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
   return (
-    <div style={{ maxWidth: 720, margin: "24px auto", padding: 16 }}>
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h1>{t("title")}</h1>
+    <div className="App">
+      {/* Sprachen */}
+      <div className="language-switch">
+        <img src={deFlag} alt="Deutsch" onClick={() => changeLanguage("de")} />
+        <img src={enFlag} alt="English" onClick={() => changeLanguage("en")} />
+      </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ display: "flex", gap: 8 }}>
-            <img
-              src={deFlag}
-              alt="Deutsch"
-              style={{ width: 36, cursor: "pointer" }}
-              onClick={() => changeLanguage("de")}
-            />
-            <img
-              src={enFlag}
-              alt="English"
-              style={{ width: 36, cursor: "pointer" }}
-              onClick={() => changeLanguage("en")}
-            />
-          </div>
+      <h1>{t("fileSystemTitle")}</h1>
 
-          {username && (
-            <span style={{ fontSize: 14, color: "#333" }}>
-              {t("logged_in_as", { user: username, role: role || "user" })}
-            </span>
-          )}
-
-          <button
-            onClick={() => {
-              localStorage.clear();
-              window.location.reload();
-            }}
-            style={{
-              padding: "6px 12px",
-              background: "#c0392b",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            {t("logout")}
-          </button>
+      {/* Upload */}
+      {role === "admin" && (
+        <div>
+          <input type="file" onChange={handleFileChange} />
+          <button onClick={handleUpload}>{t("upload")}</button>
+          {fileName && <p>{fileName}</p>}
+          {progress > 0 && <progress value={progress} max="100">{progress}%</progress>}
+          {status && <p>{status}</p>}
         </div>
-      </header>
+      )}
 
-      <section style={{ marginTop: 20 }}>
-        <form onSubmit={handleUpload}>
-          <input
-            type="file"
-            id="fileInput"
-            style={{ display: "none" }}
-            onChange={(e) => {
-              const f = e.target.files[0];
-              setFile(f);
-              setFileName(f ? f.name : "");
-            }}
-          />
+      {/* Suche & Filter */}
+      <input
+        type="text"
+        placeholder={t("search")}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+      <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+        <option value="all">{t("all")}</option>
+        <option value="xdf">XDF</option>
+        <option value="bin">BIN</option>
+        <option value="archive">{t("archive")}</option>
+        <option value="images">{t("images")}</option>
+        <option value="documents">{t("documents")}</option>
+        <option value="others">{t("others")}</option>
+      </select>
 
-          <label
-            htmlFor="fileInput"
-            style={{
-              display: "inline-block",
-              padding: "8px 16px",
-              background: "#007bff",
-              color: "#fff",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            {t("choose_file")}
-          </label>
-
-          {fileName && (
-            <span style={{ marginLeft: 10, fontStyle: "italic" }}>
-              {fileName}
-            </span>
-          )}
-
-          <button
-            type="submit"
-            style={{
-              marginLeft: 12,
-              padding: "8px 16px",
-              background: "green",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            {t("upload")}
-          </button>
-        </form>
-
-        {progress > 0 && (
-          <div
-            style={{
-              marginTop: 16,
-              width: "100%",
-              height: 20,
-              borderRadius: 10,
-              background: "#ddd",
-              overflow: "hidden",
-              position: "relative",
-            }}
-          >
-            <div
-              style={{
-                height: "100%",
-                width: `${progress}%`,
-                background:
-                  "linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet)",
-                transition: "width 0.3s ease-in-out",
-              }}
-            ></div>
-            <span
-              style={{
-                position: "absolute",
-                width: "100%",
-                textAlign: "center",
-                top: 0,
-                left: 0,
-                fontSize: 12,
-                fontWeight: "bold",
-              }}
-            >
-              {progress}%
-            </span>
-          </div>
-        )}
-
-        {status === "success" && (
-          <div style={{ marginTop: 10, color: "green", fontWeight: "bold" }}>
-            ✅ {t("upload_success")}
-          </div>
-        )}
-        {status === "error" && (
-          <div style={{ marginTop: 10, color: "red", fontWeight: "bold" }}>
-            ❌ {t("upload_fail")}
-          </div>
-        )}
-
-        <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-          <input
-            type="text"
-            placeholder={t("search")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ flex: 1, padding: 8 }}
-          />
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            style={{ padding: 8 }}
-          >
-            <option value="all">{t("all_categories")}</option>
-            <option value="xdf">{t("categories.xdf")}</option>
-            <option value="bin">{t("categories.bin")}</option>
-            <option value="archive">{t("categories.archive")}</option>
-            <option value="images">{t("categories.images")}</option>
-            <option value="documents">{t("categories.documents")}</option>
-            <option value="others">{t("categories.others")}</option>
-          </select>
-        </div>
-
-        <ul style={{ marginTop: 16, listStyle: "none", padding: 0 }}>
-          {filteredFiles.map((f) => {
-            const catKey = getCategoryKey(f.originalname);
-            return (
-              <li
-                key={f._id}
-                style={{
-                  padding: 8,
-                  borderBottom: "1px solid #eee",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 600 }}>
-                    {f.originalname}{" "}
-                    <span style={{ fontSize: 12, color: "#007bff" }}>
-                      [{t(`categories.${catKey}`)}]
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 12, color: "#666" }}>
-                    {new Date(f.createdAt).toLocaleString()}
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <a
-                    href={`http://localhost:5000/api/upload/${f.filename}`}
-                    download
-                    style={{
-                      padding: "6px 12px",
-                      background: "#444",
-                      color: "white",
-                      borderRadius: "4px",
-                      textDecoration: "none",
-                    }}
-                  >
-                    {t("download")}
-                  </a>
-                  {role === "admin" && (
-                    <button
-                      onClick={async () => {
-                        try {
-                          const res = await fetch(
-                            `http://localhost:5000/api/upload/${f._id}`,
-                            { method: "DELETE" }
-                          );
-                          if (res.ok) {
-                            fetchFiles();
-                          } else {
-                            alert("Fehler beim Löschen");
-                          }
-                        } catch (err) {
-                          alert("Fehler beim Löschen");
-                        }
-                      }}
-                      style={{
-                        padding: "6px 12px",
-                        background: "red",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {t("delete")}
-                    </button>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      {/* Datei-Liste */}
+      <ul>
+        {filteredFiles.map((f) => (
+          <li key={f._id}>
+            <a href={`${API_URL}/upload/${f.filename}`} target="_blank" rel="noreferrer">
+              {f.filename}
+            </a>
+            {role === "admin" && (
+              <button onClick={() => handleDelete(f._id)}>❌</button>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
